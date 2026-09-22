@@ -1,0 +1,12 @@
+server:
+  port: 0
+spring:
+  datasource:
+    url: jdbc:sqlite:file:splice-test.db?mode=memory&cache=shared
+    driver-class-name: org.sqlite.JDBC
+    hikari:
+      maximum-pool-size: 4
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql

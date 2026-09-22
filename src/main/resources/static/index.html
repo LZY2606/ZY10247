@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>剪接路径裁决台</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+<header>
+  <h1>剪接路径裁决台</h1>
+  <div class="meta">
+    <span>半开坐标 [start,end) · 反向链做坐标镜像 · 零计数与未采集区分</span>
+    <span id="fixtureSha">fixture sha256: …</span>
+  </div>
+</header>
+
+<main>
+  <section class="panel controls">
+    <div class="row">
+      <label>位点
+        <select id="locusSelect"></select>
+      </label>
+      <label>链方向（可更正）
+        <select id="strandSelect">
+          <option value="">使用声明链</option>
+          <option value="+">+ 正链</option>
+          <option value="-">- 反链</option>
+        </select>
+      </label>
+      <button id="solveBtn" class="primary">求解候选路径集</button>
+      <label class="persist"><input type="checkbox" id="persistRun" checked/> 保存为运行记录</label>
+    </div>
+    <div class="row">
+      <fieldset id="edgeToggles">
+        <legend>排除低可比对性 / 指定边</legend>
+      </fieldset>
+    </div>
+    <div class="row">
+      <label>锁定已知路径（exon ord，逗号分隔；多条用分号）
+        <input id="lockInput" placeholder="例：1,2,3,5" />
+      </label>
+      <button id="clearLock">清除锁定</button>
+      <button id="reimportBtn" class="warn">清空数据库并重新导入 fixture</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>剪接图（SVG）</h2>
+    <div id="graphSvg" class="svg-wrap"></div>
+    <div id="legend">
+      <span class="sw supported"></span>有跨连接支持
+      <span class="sw zero"></span>显式零计数
+      <span class="sw excluded"></span>已排除
+      <span class="sw lowmap"></span>低可比对性
+      <span class="sw uncollected"></span>未采集样本(null)
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>样本支持（junction × sample）</h2>
+    <div class="table-wrap"><table id="supportTable"></table></div>
+  </section>
+
+  <section class="panel">
+    <h2>候选转录本路径</h2>
+    <div class="table-wrap"><table id="candidateTable"></table></div>
+  </section>
+
+  <section class="panel">
+    <h2>路径集解（保留边流量相同的并列分解）</h2>
+    <div id="solutions"></div>
+  </section>
+
+  <section class="panel">
+    <h2>残余边流量（重建误差）</h2>
+    <div class="table-wrap"><table id="residualTable"></table></div>
+  </section>
+
+  <section class="panel runs">
+    <h2>运行记录 / 导出 / 差分</h2>
+    <div class="row">
+      <button id="refreshRuns">刷新</button>
+      <label>运行 A <select id="runA"></select></label>
+      <label>运行 B <select id="runB"></select></label>
+      <button id="diffBtn">差分 A vs B</button>
+    </div>
+    <div class="table-wrap"><table id="runsTable"></table></div>
+    <pre id="diffOut"></pre>
+  </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

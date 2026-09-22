@@ -1,0 +1,16 @@
+server:
+  port: 5587
+spring:
+  datasource:
+    url: jdbc:sqlite:${SPLICE_DB:data/splice.db}
+    driver-class-name: org.sqlite.JDBC
+    hikari:
+      maximum-pool-size: 4
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+      encoding: UTF-8
+logging:
+  level:
+    com.splice: INFO

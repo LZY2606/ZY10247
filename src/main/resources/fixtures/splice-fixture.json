@@ -1,0 +1,66 @@
+{
+  "comment": "固定 fixture。GENE-D：5 exon 的非唯一分解结构（含显式零边 j24），合计边流量同时等于转录本集合 {B=1-2-3-4-5,D=1-3-5} 与 {C=1-3-4-5,E=1-2-3-5}。GENE-R：反向链位点，k2r 为低可比对性边且三个已采集样本显式为 0。S4 未采集（无任何计数行），与零计数区分。所有坐标均为半开 [start,end)。",
+  "loci": [
+    {
+      "id": "GENE-D",
+      "chromosome": "chr1",
+      "region": [1000, 1900],
+      "strand": "+",
+      "exons": [
+        {"ord": 1, "name": "E1",  "start": 1000, "end": 1100},
+        {"ord": 2, "name": "E2",  "start": 1200, "end": 1300},
+        {"ord": 3, "name": "E3",  "start": 1400, "end": 1500},
+        {"ord": 4, "name": "E4",  "start": 1600, "end": 1700},
+        {"ord": 5, "name": "E5",  "start": 1800, "end": 1900}
+      ],
+      "junctions": [
+        {"id": "j12", "from": 1, "to": 2},
+        {"id": "j13", "from": 1, "to": 3},
+        {"id": "j23", "from": 2, "to": 3},
+        {"id": "j24", "from": 2, "to": 4, "note": "显式零计数边（已观测，三个样本均为 0）"},
+        {"id": "j34", "from": 3, "to": 4},
+        {"id": "j35", "from": 3, "to": 5},
+        {"id": "j45", "from": 4, "to": 5}
+      ]
+    },
+    {
+      "id": "GENE-R",
+      "chromosome": "chr2",
+      "region": [5000, 6000],
+      "strand": "-",
+      "exons": [
+        {"ord": 1, "name": "ER1", "start": 5800, "end": 5900},
+        {"ord": 2, "name": "ER2", "start": 5500, "end": 5600},
+        {"ord": 3, "name": "ER3", "start": 5200, "end": 5300},
+        {"ord": 4, "name": "ER4", "start": 5000, "end": 5100}
+      ],
+      "junctions": [
+        {"id": "k1r", "from": 1, "to": 2},
+        {"id": "k2r", "from": 2, "to": 3, "lowMappability": true, "note": "低可比对性；已观测显式 0，可在页面排除"},
+        {"id": "k3r", "from": 3, "to": 4}
+      ]
+    }
+  ],
+  "samples": [
+    {"id": "S1", "group": "control",   "collected": true},
+    {"id": "S2", "group": "control",   "collected": true},
+    {"id": "S3", "group": "treatment", "collected": true},
+    {"id": "S4", "group": "treatment", "collected": false}
+  ],
+  "counts": {
+    "GENE-D": {
+      "j12": {"S1": 1, "S2": 0, "S3": 0},
+      "j13": {"S1": 0, "S2": 1, "S3": 0},
+      "j23": {"S1": 1, "S2": 0, "S3": 0},
+      "j24": {"S1": 0, "S2": 0, "S3": 0},
+      "j34": {"S1": 1, "S2": 0, "S3": 0},
+      "j35": {"S1": 0, "S2": 1, "S3": 0},
+      "j45": {"S1": 1, "S2": 0, "S3": 0}
+    },
+    "GENE-R": {
+      "k1r": {"S1": 2, "S2": 1, "S3": 1},
+      "k2r": {"S1": 0, "S2": 0, "S3": 0},
+      "k3r": {"S1": 2, "S2": 1, "S3": 1}
+    }
+  }
+}
