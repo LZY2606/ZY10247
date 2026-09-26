@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>剪接路径裁决台</title>
+<style>
+  :root { --ink:#1f2a44; --muted:#5b6b88; --line:#d8dfeb; --bg:#f5f7fb; --card:#ffffff; --accent:#3457a0; --warn:#b06a00; --good:#1f7a4d; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:ui-sans-serif,system-ui,"PingFang SC","Microsoft YaHei",sans-serif; background:var(--bg); color:var(--ink); }
+  header { background:linear-gradient(120deg,#22325a,#3457a0); color:#fff; padding:18px 28px; }
+  header h1 { margin:0; font-size:22px; }
+  header p { margin:4px 0 0; font-size:13px; opacity:.85; }
+  .wrap { max-width:1280px; margin:18px auto; padding:0 18px; display:grid; grid-template-columns:340px 1fr; gap:16px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:16px; }
+  .card h2 { font-size:15px; margin:0 0 10px; }
+  label { font-size:12px; color:#4a5572; display:block; margin:8px 0 4px; }
+  select, input, textarea, button { font:inherit; }
+  select, input[type=text], input[type=number] { width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; }
+  button { cursor:pointer; border:0; border-radius:6px; padding:7px 12px; background:var(--accent); color:#fff; font-size:13px; }
+  button.ghost { background:#eef2fa; color:var(--accent); border:1px solid #cdd8ee; }
+  button.warn { background:#a45a12; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .muted { color:#7a869c; font-size:12px; }
+  table { border-collapse:collapse; width:100%; font-size:12px; }
+  th,td { border:1px solid var(--line); padding:4px 7px; text-align:right; }
+  th { background:#eef2fa; font-weight:600; }
+  td.lbl, th.lbl { text-align:left; }
+  .zero { color:var(--good); }
+  .na { color:#a45a12; font-weight:600; }
+  .pill { display:inline-block; padding:1px 7px; border-radius:999px; font-size:11px; }
+  .pill.tied { background:#fdeccf; color:#8a4b00; }
+  .pill.unique { background:#dcf3e6; color:#17663f; }
+  .pill.bad { background:#fbdcdc; color:#9a2626; }
+  .scope { border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-bottom:12px; }
+  .sol { background:#f7f9ff; border:1px dashed #bcc8e6; border-radius:6px; padding:6px 9px; margin:6px 0; font-size:12px; }
+  .resid-pos { color:#a45a12; }
+  .run-item { display:flex; justify-content:space-between; align-items:center; padding:6px 4px; border-bottom:1px dashed var(--line); font-size:12px; }
+  .run-item button { padding:3px 8px; font-size:12px; }
+  #svgHost { overflow-x:auto; }
+  svg { max-width:100%; height:auto; }
+  .mono { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  details summary { cursor:pointer; font-size:13px; font-weight:600; margin:4px 0; }
+  .delta { font-size:12px; }
+  .delta.same { color:var(--good); } .delta.changed { color:var(--warn); }
+</style>
+</head>
+<body>
+<header>
+  <h1>剪接路径裁决台</h1>
+  <p>从固定 fixture 建立剪接图：半开坐标 · 链方向感知 · 枚举受支持转录本候选 · 保留并列稀疏路径分解与残余边流量</p>
+</header>
+
+<div class="wrap">
+  <div>
+    <div class="card">
+      <h2>裁决操作</h2>
+      <label>链方向（更正后做坐标镜像，不只是倒序）</label>
+      <div class="row">
+        <select id="strand"><option value="">沿用 fixture（基因自带）</option><option value="+">正链 +</option><option value="-">负链 -</option></select>
+      </div>
+      <label>排除低可比对性边（mappability 低于阈值）</label>
+      <div class="row">
+        <input type="number" id="minMap" min="0" max="1" step="0.01" placeholder="例如 0.7" style="flex:1">
+      </div>
+      <label>或手工勾选排除的 junction</label>
+      <div id="edgeToggles" class="row"></div>
+      <label>锁定已知路径（流量，整数或 a/b）</label>
+      <div id="lockRows"></div>
+      <label>备注</label>
+      <input type="text" id="note" placeholder="本次运行说明">
+      <div class="row" style="margin-top:10px">
+        <button id="solveBtn">求解并记录</button>
+        <button class="ghost" id="resetBtn">重置</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>运行记录与差分</h2>
+      <div class="row" style="margin-bottom:6px">
+        <select id="fromRun" style="flex:1"></select>
+        <span class="muted">→</span>
+        <select id="toRun" style="flex:1"></select>
+      </div>
+      <div class="row">
+        <button class="ghost" id="diffBtn">比较两次运行</button>
+        <a href="/api/export"><button type="button" class="ghost">导出 JSONL</button></a>
+      </div>
+      <div id="diffOut" style="margin-top:8px"></div>
+      <div id="runList" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card">
+      <h2>数据管理</h2>
+      <p class="muted">清空业务表后从固定 fixture 重新导入，用于复核与重放。</p>
+      <div class="row">
+        <button class="warn" id="reimportBtn">清空并重新导入 fixture</button>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <h2>剪接图（exon 节点 / splice junction 边）</h2>
+      <div id="svgHost"></div>
+      <p class="muted">虚线=低可比对性；节点标注半开坐标 [start,end)；边方向为转录 5′→3′。</p>
+    </div>
+
+    <div class="card">
+      <h2>Exon 节点（半开坐标）</h2>
+      <table id="exonTable"></table>
+    </div>
+
+    <div class="card">
+      <h2>样本 × Junction 计数</h2>
+      <p class="muted"><span class="zero">绿色 0</span> = 采集到的真实零计数；
+        <span class="na">N/A</span> = 未采集（NULL，与 0 不同）。</p>
+      <div style="overflow-x:auto"><table id="countTable"></table></div>
+    </div>
+
+    <div class="card">
+      <h2>路径候选与求解结果</h2>
+      <div id="result"></div>
+    </div>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>
